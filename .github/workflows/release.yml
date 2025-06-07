@@ -11,7 +11,13 @@ jobs:
       contents: write
       id-token: write
     steps:
+      - name: Create files
+        run: |
+          echo asd1 > file1.txt
+          echo asd2 > file2.txt
+
       - uses: sigstore/gh-action-sigstore-python@v3.0.0
         with:
+          inputs: file1.txt file2.txt
           release-signing-artifacts: true
           upload-signing-artifacts: true
