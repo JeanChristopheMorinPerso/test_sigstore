@@ -1,0 +1,8 @@
+[project]
+name = "jcmorin-test-attestations-slsa"
+version = "1.2.0"
+license = "MIT"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

@@ -5,19 +5,46 @@ on:
     types: [published]
 
 jobs:
-  sigstore-python:
+  publish:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      id-token: write
-    steps:
-      - name: Create files
-        run: |
-          echo asd1 > file1.txt
-          echo asd2 > file2.txt
 
-      - uses: sigstore/gh-action-sigstore-python@v3.0.0
-        with:
-          inputs: file1.txt file2.txt
-          release-signing-artifacts: true
-          upload-signing-artifacts: true
+    permissions:
+      id-token: write
+      contents: read
+      attestations: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v5
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: build
+      run: |
+        python -m pip install build
+        python -m build -ws .
+
+    # - name: Generate artifact attestation for sdist
+    #   id: sdist-attestation
+    #   uses: actions/attest-build-provenance@v3.0.0
+    #   with:
+    #     subject-path: '${{ github.workspace }}/dist/*.tar.gz'
+
+    # - name: Generate artifact attestation for wheel
+    #   id: wheel-attestation
+    #   uses: actions/attest-build-provenance@v3.0.0
+    #   with:
+    #     subject-path: '${{ github.workspace }}/dist/*.whl'
+
+    # - name: Rename attestations
+    #   run: |
+    #     mv -v ${{ steps.sdist-attestation.outputs.bundle-path }} dist/$(basename $(ls dist/*.tar.gz)).slsa.attestation
+    #     mv -v ${{ steps.wheel-attestation.outputs.bundle-path }} dist/$(basename $(ls dist/*.whl)).slsa.attestation
+
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@v1.13.0
+      with:
+        repository-url: https://test.pypi.org/legacy/
