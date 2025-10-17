@@ -27,22 +27,22 @@ jobs:
         python -m pip install build
         python -m build -ws .
 
-    # - name: Generate artifact attestation for sdist
-    #   id: sdist-attestation
-    #   uses: actions/attest-build-provenance@v3.0.0
-    #   with:
-    #     subject-path: '${{ github.workspace }}/dist/*.tar.gz'
+    - name: Generate artifact attestation for sdist
+      id: sdist-attestation
+      uses: actions/attest-build-provenance@v3.0.0
+      with:
+        subject-path: '${{ github.workspace }}/dist/*.tar.gz'
 
-    # - name: Generate artifact attestation for wheel
-    #   id: wheel-attestation
-    #   uses: actions/attest-build-provenance@v3.0.0
-    #   with:
-    #     subject-path: '${{ github.workspace }}/dist/*.whl'
+    - name: Generate artifact attestation for wheel
+      id: wheel-attestation
+      uses: actions/attest-build-provenance@v3.0.0
+      with:
+        subject-path: '${{ github.workspace }}/dist/*.whl'
 
-    # - name: Rename attestations
-    #   run: |
-    #     mv -v ${{ steps.sdist-attestation.outputs.bundle-path }} dist/$(basename $(ls dist/*.tar.gz)).slsa.attestation
-    #     mv -v ${{ steps.wheel-attestation.outputs.bundle-path }} dist/$(basename $(ls dist/*.whl)).slsa.attestation
+    - name: Rename attestations
+      run: |
+        mv -v ${{ steps.sdist-attestation.outputs.bundle-path }} dist/$(basename $(ls dist/*.tar.gz)).slsa.attestation
+        mv -v ${{ steps.wheel-attestation.outputs.bundle-path }} dist/$(basename $(ls dist/*.whl)).slsa.attestation
 
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@v1.13.0
