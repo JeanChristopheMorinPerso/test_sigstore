@@ -1,9 +1,9 @@
 name: Release
 
 on:
-  push:
-  # release:
-  #   types: [published]
+  # push:
+  release:
+    types: [published]
 
 jobs:
   publish:
@@ -46,7 +46,7 @@ jobs:
         pypi-attestations convert --output-file dist/$(basename $(ls dist/*.tar.gz)).slsa.attestation ${{ steps.sdist-attestation.outputs.bundle-path }}
         pypi-attestations convert --output-file dist/$(basename $(ls dist/*.whl)).slsa.attestation ${{ steps.wheel-attestation.outputs.bundle-path }}
 
-    # - name: Publish to PyPI
-    #   uses: pypa/gh-action-pypi-publish@v1.13.0
-    #   with:
-    #     repository-url: https://test.pypi.org/legacy/
+    - name: Publish to PyPI
+      uses: pypa/gh-action-pypi-publish@v1.13.0
+      with:
+        repository-url: https://test.pypi.org/legacy/

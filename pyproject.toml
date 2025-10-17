@@ -1,6 +1,6 @@
 [project]
 name = "jcmorin-test-attestations-slsa"
-version = "1.2.1"
+version = "1.2.2"
 license = "MIT"
 
 [build-system]
