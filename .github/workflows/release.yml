@@ -1,8 +1,9 @@
 name: Release
 
 on:
-  release:
-    types: [published]
+  push:
+  # release:
+  #   types: [published]
 
 jobs:
   publish:
@@ -24,7 +25,7 @@ jobs:
 
     - name: build
       run: |
-        python -m pip install build
+        python -m pip install build pypi-attestations
         python -m build -ws .
 
     - name: Generate artifact attestation for sdist
@@ -41,10 +42,11 @@ jobs:
 
     - name: Rename attestations
       run: |
-        mv -v ${{ steps.sdist-attestation.outputs.bundle-path }} dist/$(basename $(ls dist/*.tar.gz)).slsa.attestation
-        mv -v ${{ steps.wheel-attestation.outputs.bundle-path }} dist/$(basename $(ls dist/*.whl)).slsa.attestation
+        set -ex
+        pypi-attestations convert --output-file dist/$(basename $(ls dist/*.tar.gz)).slsa.attestation ${{ steps.sdist-attestation.outputs.bundle-path }}
+        pypi-attestations convert --output-file dist/$(basename $(ls dist/*.whl)).slsa.attestation ${{ steps.wheel-attestation.outputs.bundle-path }}
 
-    - name: Publish to PyPI
-      uses: pypa/gh-action-pypi-publish@v1.13.0
-      with:
-        repository-url: https://test.pypi.org/legacy/
+    # - name: Publish to PyPI
+    #   uses: pypa/gh-action-pypi-publish@v1.13.0
+    #   with:
+    #     repository-url: https://test.pypi.org/legacy/
