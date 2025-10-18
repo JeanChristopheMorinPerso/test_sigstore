@@ -11,7 +11,7 @@ jobs:
 
     permissions:
       id-token: write
-      contents: read
+      contents: write
       attestations: write
 
     steps:
@@ -50,3 +50,19 @@ jobs:
       uses: pypa/gh-action-pypi-publish@v1.13.0
       with:
         repository-url: https://test.pypi.org/legacy/
+
+    - name: Create attestation for archive
+      uses: sigstore/gh-action-sigstore-python@v3.0.1
+      with:
+        upload-signing-artifacts: true
+        release-signing-artifacts: true
+
+    - name: Upload artifacts to release
+      run: |
+        mv -v ${{ steps.sdist-attestation.outputs.bundle-path }} dist/$(basename $(ls dist/*.tar.gz)).sigstore.json
+        mv -v ${{ steps.wheel-attestation.outputs.bundle-path }} dist/$(basename $(ls dist/*.whl)).sigstore.json
+
+        gh release upload $TAG dist/*.sigstore.json dist/*.tar.gz dist/*.whl
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        TAG: ${{ github.ref_name }}
