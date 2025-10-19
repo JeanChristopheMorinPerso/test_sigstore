@@ -41,12 +41,21 @@ jobs:
       with:
         subject-path: 'dist/python/*.whl'
 
+    # Convert the SLSA attestations to PyPI attestations and store them in dist/python.
+    # Note that gh-action-pypi-publish uses twine to upload artifacts.
+    # twine looks for files named "*.*.attestation" in the same directory as the artifact
+    # to find the attestation for the artifact.
+    # gh-action-pypi-publish itself generates the PyPI attestations using the name
+    # *.publish.attestation. SO we use *.slsa.attestation to avoid clashing with the publish
+    # ones.
     - name: Convert SLSA attestations to PyPI attestations
       run: |
         set -ex
         pypi-attestations convert --output-file dist/python/$(basename $(ls dist/python/*.tar.gz)).slsa.attestation ${{ steps.sdist-attestation.outputs.bundle-path }}
         pypi-attestations convert --output-file dist/python/$(basename $(ls dist/python/*.whl)).slsa.attestation ${{ steps.wheel-attestation.outputs.bundle-path }}
 
+    # This will upload the sdist and wheel to PyPI, generate the trusted publisher
+    # attestation and also atatch the SLSA attestations.
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@v1.13.0
       with:
@@ -74,11 +83,16 @@ jobs:
 
     - name: Upload artifacts to release
       run: |
-        set -ex
+        set -e
         mv -v ${{ steps.sdist-attestation.outputs.bundle-path }} dist/python/$(basename $(ls dist/python/*.tar.gz)).sigstore.json
         mv -v ${{ steps.wheel-attestation.outputs.bundle-path }} dist/python/$(basename $(ls dist/python/*.whl)).sigstore.json
         mv -v ${{ steps.git-archive-zip-attestation.outputs.bundle-path }} dist/$GITHUB_REF_NAME.zip.sigstore.json
         mv -v ${{ steps.git-archive-tar-gz-attestation.outputs.bundle-path }} dist/$GITHUB_REF_NAME.tar.gz.sigstore.json
-        gh release upload $GITHUB_REF_NAME dist/*.sigstore.json dist/*.tar.gz dist/*.zip dist/python/*.tar.gz dist/python/*.whl dist/python/*.sigstore.json
+
+        # Remove PyPI attestation as it's not needed for the GH release artifacts.
+        rm -v dist/python/*.attestation
+
+        set -x
+        gh release upload $GITHUB_REF_NAME $(find ./dist -type f)
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
