@@ -27,30 +27,30 @@ jobs:
       run: |
         set -ex
         python -m pip install build pypi-attestations
-        python -m build --sdist --wheel --outdir ./dist .
+        python -m build --sdist --wheel --outdir ./dist/python .
 
     - name: Generate SLSA attestation for sdist
       id: sdist-attestation
       uses: actions/attest-build-provenance@v3.0.0
       with:
-        subject-path: 'dist/*.tar.gz'
+        subject-path: 'dist/python/*.tar.gz'
 
     - name: Generate SLSA attestation for wheel
       id: wheel-attestation
       uses: actions/attest-build-provenance@v3.0.0
       with:
-        subject-path: 'dist/*.whl'
+        subject-path: 'dist/python/*.whl'
 
     - name: Convert SLSA attestations to PyPI attestations
       run: |
         set -ex
-        pypi-attestations convert --output-file dist/$(basename $(ls dist/*.tar.gz)).slsa.attestation ${{ steps.sdist-attestation.outputs.bundle-path }}
-        pypi-attestations convert --output-file dist/$(basename $(ls dist/*.whl)).slsa.attestation ${{ steps.wheel-attestation.outputs.bundle-path }}
+        pypi-attestations convert --output-file dist/python/$(basename $(ls dist/python/*.tar.gz)).slsa.attestation ${{ steps.sdist-attestation.outputs.bundle-path }}
+        pypi-attestations convert --output-file dist/python/$(basename $(ls dist/python/*.whl)).slsa.attestation ${{ steps.wheel-attestation.outputs.bundle-path }}
 
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@v1.13.0
       with:
-        packages-dir: dist
+        packages-dir: dist/python
         repository-url: https://test.pypi.org/legacy/
 
     - name: Generate git archives
@@ -75,8 +75,8 @@ jobs:
     - name: Upload artifacts to release
       run: |
         set -ex
-        mv -v ${{ steps.sdist-attestation.outputs.bundle-path }} dist/$(basename $(ls dist/*.tar.gz)).sigstore.json
-        mv -v ${{ steps.wheel-attestation.outputs.bundle-path }} dist/$(basename $(ls dist/*.whl)).sigstore.json
+        mv -v ${{ steps.sdist-attestation.outputs.bundle-path }} dist/python/$(basename $(ls dist/python/*.tar.gz)).sigstore.json
+        mv -v ${{ steps.wheel-attestation.outputs.bundle-path }} dist/python/$(basename $(ls dist/python/*.whl)).sigstore.json
         mv -v ${{ steps.git-archive-zip-attestation.outputs.bundle-path }} dist/$GITHUB_REF_NAME.zip.sigstore.json
         mv -v ${{ steps.git-archive-tar-gz-attestation.outputs.bundle-path }} dist/$GITHUB_REF_NAME.tar.gz.sigstore.json
         gh release upload $GITHUB_REF_NAME dist/*.sigstore.json dist/*.tar.gz dist/*.whl dist/*.zip
