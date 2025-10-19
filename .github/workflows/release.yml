@@ -79,6 +79,6 @@ jobs:
         mv -v ${{ steps.wheel-attestation.outputs.bundle-path }} dist/python/$(basename $(ls dist/python/*.whl)).sigstore.json
         mv -v ${{ steps.git-archive-zip-attestation.outputs.bundle-path }} dist/$GITHUB_REF_NAME.zip.sigstore.json
         mv -v ${{ steps.git-archive-tar-gz-attestation.outputs.bundle-path }} dist/$GITHUB_REF_NAME.tar.gz.sigstore.json
-        gh release upload $GITHUB_REF_NAME dist/*.sigstore.json dist/*.tar.gz dist/*.whl dist/*.zip
+        gh release upload $GITHUB_REF_NAME dist/*.sigstore.json dist/*.tar.gz dist/*.zip dist/python/*.tar.gz dist/python/*.whl dist/python/*.sigstore.json
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
